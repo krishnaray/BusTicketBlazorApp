@@ -1,0 +1,37 @@
+﻿@inject IBusesService BusesService
+<h3>Buses</h3>
+<br />
+@if (buses == null || buses.Count <= 0)
+{
+    <p><em>Loading...</em></p>
+}
+
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Number</th>
+                <th>Type</th>
+                <th>Seats</th>
+                <th>Operator</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var bus in buses)
+            {
+                <BusesListItem Bus="@bus" />
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Bus> buses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        buses = await BusesService.GetAll();
+    }
+}

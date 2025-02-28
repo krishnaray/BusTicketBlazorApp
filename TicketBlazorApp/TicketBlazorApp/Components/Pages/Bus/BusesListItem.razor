@@ -1,0 +1,17 @@
+﻿<tr>
+    <td>@Bus.BusID</td>
+    <td>@Bus.BusNumber</td>
+    <td>@Bus.BusType</td>
+    <td>@Bus.TotalSeats</td>
+    <td>@Bus.OperatorName</td>
+    <td><a href="/buses/@Bus.BusID" class="btn btn-link">Details</a></td>
+    <td><a href="/buses/edit/@Bus.BusID" class="btn btn-link">Edit</a></td>
+    <td><a href="/buses/delete/@Bus.BusID" class="btn btn-link">Delete</a></td>
+
+    
+</tr>
+
+@code {
+    [Parameter]
+    public Bus Bus { get; set; }
+}

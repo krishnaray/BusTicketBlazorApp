@@ -1,0 +1,102 @@
+﻿@page "/buses/edit/{id:int}"
+@inject IBusesService BusesService
+<h3>BusEdit</h3>
+
+@if (Bus != null && Id != null) {
+    <EditForm Model="Bus" FormName="BusForm" OnValidSubmit="BusUpdate">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div class="row mb-4">
+            <div class="col-2">   
+                <label class="form-label">Number</label>
+            </div>
+            <div class="col-6">
+                <InputText @bind-Value="Bus.BusNumber" class="form-control"/>
+            </div>
+            <div class="col">
+                <ValidationMessage For="@(() => Bus.BusNumber)" />
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Type</label>
+            </div>
+            <div class="col-6">
+                <InputText @bind-Value="Bus.BusType" class="form-control" />
+            </div>
+            <div class="col">
+                <ValidationMessage For="@(() => Bus.BusType)" />
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Seats</label>
+            </div>
+            <div class="col-6">
+                <InputNumber @bind-Value="Bus.TotalSeats" class="form-control" />
+            </div>
+            <div class="col">
+                <ValidationMessage For="@(() => Bus.TotalSeats)" />
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Rows</label>
+            </div>
+            <div class="col-6">
+                <InputNumber @bind-Value="Bus.Rows" class="form-control" />
+            </div>
+            <div class="col">
+                <ValidationMessage For="@(() => Bus.Rows)" />
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Cols</label>
+            </div>
+            <div class="col-6">
+                <InputNumber @bind-Value="Bus.Cols" class="form-control" />
+            </div>
+            <div class="col">
+                <ValidationMessage For="@(() => Bus.Cols)" />
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Operator</label>
+            </div>
+            <div class="col-6">
+                <InputText @bind-Value="Bus.OperatorName" class="form-control" />
+            </div>
+            <div class="col">
+                <ValidationMessage For="@(() => Bus.OperatorName)" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="/buses" class="btn btn-primary">Close</a>
+    </EditForm>
+}
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    [SupplyParameterFromForm(FormName = "BusForm")]
+    public Bus? Bus { get; set; }
+
+    override protected async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            Bus ??= await BusesService.Get(Id.Value);
+        }
+    }
+
+    public void BusUpdate()
+    {
+        if (Id != null && Bus != null)
+        {
+            if(Bus.BusID != Id)
+                Bus.BusID = Id.Value;
+            BusesService.Edit(Id.Value, Bus);
+        }
+    }
+}

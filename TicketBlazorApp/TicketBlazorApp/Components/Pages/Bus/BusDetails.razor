@@ -1,0 +1,149 @@
+﻿@page "/buses/{id:int}"
+@inject IBusesService BusesService
+@inject ISeatService SeatService
+
+<h3>BusDetails</h3>
+
+@if (Bus != null)
+{
+    <a href="/buses" class="btn btn-primary">Close</a>
+    <a href="/buses/edit/@Bus.BusID" class="btn btn-primary">Edit</a>
+    <div class="col">
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Id</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.BusID</label>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Number</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.BusNumber</label>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Type</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.BusType</label>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Operator</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.OperatorName</label>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Seats</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.TotalSeats</label>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Rows</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.Rows</label>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-2">
+                <label class="form-label">Cols</label>
+            </div>
+            <div class="col-6">
+                <label class="form-label">@Bus.Cols</label>
+            </div>
+        </div>
+
+    </div>
+    <div class="col">
+        <h4>Seats</h4>
+        @if (Seats != null) {
+            string col = "";
+            for (int i = 0; i < Seats.Count; i++)
+            {
+                if (Seats[i] == null) continue;
+                if (!col.Equals(Seats[i].Col))
+                {
+                    if(!string.IsNullOrEmpty(col))
+                    {
+                        <div class="row">
+                    } else
+                    {
+                        </div>
+                    }
+                    col = Seats[i].Col;
+                }
+                <div class="col">
+                    <button class="btn btn-primary">@Seats[i].SeatNumber</button>
+                </div>
+            }
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    public Bus? Bus { get; set; }
+    public List<BusSeat>? Seats { get; set; }
+    override protected async Task OnInitializedAsync()
+    {
+        if (Id != null)
+        {
+            Bus ??= await BusesService.Get(Id.Value);
+        }
+        if (Bus != null)
+        {
+            Seats = await SeatService.GetBusSeats(Bus.BusID);
+            if (Seats != null)
+            {
+                if (Seats.Count > Bus.TotalSeats)
+                    DeleteExtraSeats(Seats, Bus.TotalSeats, Seats.Count - 1);
+                else if (Seats.Count < Bus.TotalSeats)
+                    AddRemaningSeats(Bus, Seats.Count, Bus.TotalSeats - 1);
+            }
+        }
+    }
+    void DeleteExtraSeats(List<BusSeat>? Seats, int start, int end)
+    {
+        if (Seats != null)
+        {
+            for (int i = start; i <= end && i < Seats.Count; i++)
+            {
+                if (Seats[i] == null) continue;
+                SeatService.DeleteConfirmed(Seats[i].SeatID);
+            }
+        }
+    }
+    void AddRemaningSeats(Bus? Bus, int startIndex, int endIndex)
+    {
+        if (Bus == null) return;
+        for (int i = startIndex; i <= endIndex; i++)
+        {
+            int col = Bus.Cols > 0 ? i % Bus.Cols : 1;
+            int row = Bus.Cols > 0 ? i / Bus.Cols : 1;
+            SeatService.Create(new BusSeat
+                {
+                    BusID = Bus.BusID,
+                    SeatIndex = i,
+                    Row = row.ToString(),
+                    Col = col.ToString(),
+                    SeatType = "CHAIR",
+                    Status = "AVBL"
+                });
+        }
+    }
+}

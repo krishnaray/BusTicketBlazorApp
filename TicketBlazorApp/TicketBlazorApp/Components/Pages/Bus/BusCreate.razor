@@ -1,0 +1,132 @@
+﻿@page "/buses/create"
+@inject IBusesService BusesService
+@inject ISeatService SeatService
+@inject NavigationManager NavManager
+
+<h3>Bus Create</h3>
+
+<EditForm Model="Bus" FormName="BusForm" OnValidSubmit="BusCreateFormSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row mb-4">
+        <div class="col-2">
+            <label class="form-label">Number</label>
+        </div>
+        <div class="col-6">
+            <InputText @bind-Value="Bus.BusNumber" class="form-control" />
+        </div>
+        <div class="col">
+            <ValidationMessage For="@(() => Bus.BusNumber)" />
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-2">
+            <label class="form-label">Type</label>
+        </div>
+        <div class="col-6">
+            <InputText @bind-Value="Bus.BusType" class="form-control" />
+        </div>
+        <div class="col">
+            <ValidationMessage For="@(() => Bus.BusType)" />
+        </div>
+    </div>
+    <div class="row mb-6">
+        <div class="col-2">
+            <label class="form-label">Seats</label>
+        </div>
+        <div class="col-6">
+            <InputNumber @bind-Value="Bus.TotalSeats" class="form-control" />
+        </div>
+        <div class="col">
+            <ValidationMessage For="@(() => Bus.TotalSeats)" />
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-2">
+            <label class="form-label">Rows</label>
+        </div>
+        <div class="col-6">
+            <InputNumber @bind-Value="Bus.Rows" class="form-control" />
+        </div>
+        <div class="col">
+            <ValidationMessage For="@(() => Bus.Rows)" />
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-2">
+            <label class="form-label">Cols</label>
+        </div>
+        <div class="col-6">
+            <InputNumber @bind-Value="Bus.Cols" class="form-control" />
+        </div>
+        <div class="col">
+            <ValidationMessage For="@(() => Bus.Cols)" />
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-2">
+            <label class="form-label">Operator</label>
+        </div>
+        <div class="col-6">
+            <InputText @bind-Value="Bus.OperatorName" class="form-control" />
+        </div>
+        <div class="col">
+            <ValidationMessage For="@(() => Bus.OperatorName)" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a href="/buses" class="btn btn-primary">Close</a>
+</EditForm>
+
+
+@code {
+    [SupplyParameterFromForm(FormName = "BusForm")]
+    public Bus? Bus { get; set; } = new Bus();
+    public List<BusSeat>? Seats { get; set; }
+
+    public void BusCreateFormSubmit()
+    {
+        if (Bus != null)
+        {
+            var res = BusesService.Create(Bus);
+            if (res != null) {
+                Bus = res.Result;
+                if (Bus != null)
+                {
+                    var seats = SeatService.GetBusSeats(Bus.BusID);
+                    if (seats != null)
+                    {
+                        Seats = seats.Result;
+                        if (Seats.Count > Bus.TotalSeats)
+                            DeleteExtraSeats(Seats, Bus.TotalSeats, Seats.Count - 1);
+                        else
+                            AddRemaningSeats(Bus, Seats.Count, Bus.TotalSeats - 1);
+                        NavManager.NavigateTo("/buses/" + Bus.BusID);
+                    }
+                }
+            }
+        }
+    }
+    void DeleteExtraSeats(List<BusSeat>? Seats, int start, int end)
+    {
+        if (Seats != null)
+        {
+            for (int i = start; i <= end && i < Seats.Count; i++)
+            {
+                if (Seats[i] == null) continue;
+                     SeatService.DeleteConfirmed(Seats[i].SeatID);
+            }
+        }
+    }
+    void AddRemaningSeats(Bus? Bus, int startIndex, int endIndex)
+    {
+        if (Bus == null) return;
+        for (int i = startIndex; i <= endIndex; i++)
+        {
+            int row = Bus.Rows > 0 ? i % Bus.Rows : 1;
+            int col = Bus.Rows > 0 ? i / Bus.Rows : 1;
+            SeatService.Create(new BusSeat { BusID = Bus.BusID, SeatIndex = i, 
+                Row = row.ToString(), Col = col.ToString(), SeatType = "CHAIR", Status = "AVBL"});
+        }
+    }
+}
