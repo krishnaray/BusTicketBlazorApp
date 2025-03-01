@@ -16,7 +16,8 @@ namespace TicketApp.BL.Repositories
         Task<List<Bus>> GetAll(string number);
         Task<Bus?> Get(int id);
         Task<Bus?> Get(string number);
-        Task<Bus?> Create(Bus bus);
+        Task<Bus?> Create(Bus buses);
+        Task<bool> Create(Bus[] bus);
         Task<Bus?> Edit(int id, Bus bus);
         Task<bool> DeleteConfirmed(int id);
         bool BusExists(int id);
@@ -33,6 +34,20 @@ namespace TicketApp.BL.Repositories
                 var res = await dbContext.Buses.AddAsync(bus);
                 await dbContext.SaveChangesAsync();
                 return res.Entity;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+        public async Task<bool> Create(Bus[] buses)
+        {
+            if (buses == null || buses.Length == 0) return false;
+            try
+            {
+                await dbContext.Buses.AddRangeAsync(buses);
+                await dbContext.SaveChangesAsync();
+                return true;
             }
             catch (Exception e)
             {
@@ -93,5 +108,6 @@ namespace TicketApp.BL.Repositories
         {
             return await dbContext.Buses.Where(b => b.BusNumber.ToUpper().Contains(number.ToUpper())).ToListAsync();
         }
+
     }
 }

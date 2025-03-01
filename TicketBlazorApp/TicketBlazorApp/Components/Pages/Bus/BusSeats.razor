@@ -1,0 +1,37 @@
+﻿@inject IBusesService BusesService
+@inject ISeatService SeatService
+
+<h3>BusSeats</h3>
+<div class="col">
+@if (Rows != null)
+{
+    string row = "";
+    foreach (var item in Rows)
+    {
+        if (item.Value == null) continue;
+        <BusSeatsRows Seats="@item.Value" />
+    }
+}
+</div>
+@code {
+    [Parameter]
+    public Bus? Bus { get; set; }
+    public List<BusSeat>? Seats { get; set; }
+
+    Dictionary<string, List<BusSeat>> Rows = new Dictionary<string, List<BusSeat>>();
+
+    override protected async Task OnInitializedAsync()
+    {
+        if (Bus != null)
+        {
+            Seats ??= await SeatService.GetBusSeats(Bus.BusID);
+            if (Seats != null)
+            {
+                Seats = await SeatUtils.CheckSeats(SeatService, Seats, Bus, false);
+            }
+            if (Seats != null) { 
+                Rows = Seats.GroupBy(x => x.Row).ToDictionary(x => x.Key, x => x.OrderBy(val => val.Col).ToList()); 
+            }
+        }
+    }
+}

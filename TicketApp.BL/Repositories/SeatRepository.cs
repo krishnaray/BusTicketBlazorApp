@@ -12,10 +12,14 @@ namespace TicketApp.BL.Repositories
     public interface ISeatRepository
     {
         Task<List<BusSeat>> GetAll();
-        Task<List<BusSeat>> GetBusSeats(int busNumber);
+        Task<List<BusSeat>> GetBusSeats(int busId);
         Task<BusSeat?> Get(int id);
-        Task<BusSeat?> Get(int busNumber, string row, string col);
+        Task<BusSeat?> Get(int busId, string row, string col);
+        Task<BusSeat?> Get(int busId, int seatIndex);
+        Task<List<BusSeat>> GetRow(int busId, string row);
+        Task<List<BusSeat>> GetCol(int busId, string col);
         Task<BusSeat?> Create(BusSeat seat);
+        Task<bool> Create(BusSeat[] seats);
         Task<BusSeat?> Edit(int id, BusSeat seat);
         Task<bool> DeleteConfirmed(int id);
         bool Exists(int id);
@@ -32,8 +36,22 @@ namespace TicketApp.BL.Repositories
             try
             {
                 var res = await dbContext.BusSeats.AddAsync(seat);
-                dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
                 return res.Entity;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+        public async Task<bool> Create(BusSeat[] seats)
+        {
+            if(seats == null || seats.Length <= 0) return false;
+            try
+            {
+                await dbContext.BusSeats.AddRangeAsync(seats);
+                await dbContext.SaveChangesAsync();
+                return true;
             }
             catch (Exception e)
             {
@@ -90,11 +108,22 @@ namespace TicketApp.BL.Repositories
 
         public async Task<BusSeat?> Get(int id) => await dbContext.BusSeats.FindAsync(id);
 
-        public async Task<BusSeat?> Get(int busNumber, string row, string col) => 
+        public async Task<BusSeat?> Get(int busId, string row, string col) => 
             await dbContext.BusSeats.FirstOrDefaultAsync(
-                e => e.BusID == busNumber && e.Row == row && e.Col == col);
+                e => e.BusID == busId && e.Row == row && e.Col == col);
 
-        public async Task<List<BusSeat>> GetBusSeats(int busNumber) => 
-            await dbContext.BusSeats.Where(e => e.BusID == busNumber).ToListAsync();
+        public async Task<List<BusSeat>> GetBusSeats(int busId) => 
+            await dbContext.BusSeats.Where(e => e.BusID == busId).ToListAsync();
+
+        public async Task<BusSeat?> Get(int busId, int seatIndex) => 
+            await dbContext.BusSeats.FirstOrDefaultAsync(
+                e => e.BusID == busId && e.SeatIndex == seatIndex);
+
+        public async Task<List<BusSeat>> GetRow(int busId, string row) =>
+            await dbContext.BusSeats.Where(e => e.BusID == busId && e.Row == row).ToListAsync();
+
+        public async Task<List<BusSeat>> GetCol(int busId, string col) =>
+            await dbContext.BusSeats.Where(e => e.BusID == busId && e.Col == col).ToListAsync();
+
     }
 }

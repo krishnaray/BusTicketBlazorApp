@@ -1,0 +1,11 @@
+﻿@if (Seat != null)
+{
+    <div class="col-1">
+        <button class="btn btn-primary">@Seat.SeatNumber</button>
+    </div>
+
+}
+
+@code {
+    [Parameter] public BusSeat? Seat { get; set; }
+}

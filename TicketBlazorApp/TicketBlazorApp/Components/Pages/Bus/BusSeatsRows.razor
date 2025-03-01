@@ -1,0 +1,16 @@
+﻿@inject ISeatService SeatService
+
+@if (Seats != null) { 
+    <div class="row">
+        @foreach (var seat in Seats)
+        {
+            <BusSeatItem Seat="@seat" />
+        }
+    </div>
+    <br/>
+}
+
+@code {
+    [Parameter] public List<BusSeat>? Seats { get; set; }
+
+}

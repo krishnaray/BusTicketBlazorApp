@@ -84,7 +84,7 @@
     public Bus? Bus { get; set; } = new Bus();
     public List<BusSeat>? Seats { get; set; }
 
-    public void BusCreateFormSubmit()
+    public async void BusCreateFormSubmit()
     {
         if (Bus != null)
         {
@@ -96,12 +96,7 @@
                     var seats = SeatService.GetBusSeats(Bus.BusID);
                     if (seats != null)
                     {
-                        Seats = seats.Result;
-                        if (Seats.Count > Bus.TotalSeats)
-                            DeleteExtraSeats(Seats, Bus.TotalSeats, Seats.Count - 1);
-                        else
-                            AddRemaningSeats(Bus, Seats.Count, Bus.TotalSeats - 1);
-                        NavManager.NavigateTo("/buses/" + Bus.BusID);
+                        Seats = await SeatUtils.CheckSeats(SeatService, Seats, Bus, false);
                     }
                 }
             }
